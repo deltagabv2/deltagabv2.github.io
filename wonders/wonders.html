@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"
+        href="./favicon.ico"
+        type="image/x-icon">
+
+    <link rel="icon"
+        href="./logo.png"
+        type="image/png">
+
+    <link rel="apple-touch-icon"
+        href="./favicon.ico">
+    <title>7 Wonders - Calculateur</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <style>
+        :root {
+            --parchment: #ead9b5;
+            --parchment-light: #f6e9ca;
+            --parchment-dark: #d2bc8d;
+            --ink: #2d2115;
+            --brown: #5b3a22;
+            --brown-light: #76502f;
+            --gold: #c69a3b;
+            --gold-light: #e5c96c;
+            --gold-dark: #87631e;
+            --red: #8b332b;
+            --red-light: #ead1cb;
+            --blue: #3d6683;
+            --blue-light: #d7e3ea;
+            --yellow: #a47b24;
+            --yellow-light: #eee0b8;
+            --purple: #674b80;
+            --purple-light: #e2d8e9;
+            --green: #4e704f;
+            --shadow: rgba(55, 38, 17, .22);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: Georgia, "Times New Roman", serif;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(255,255,255,.3), transparent 30%),
+                radial-gradient(circle at 80% 90%, rgba(120,85,35,.12), transparent 35%),
+                linear-gradient(135deg, #d4c093, #f0dfb9 50%, #c9b27f);
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        #game-container {
+            width: min(1200px, 100%);
+            margin: auto;
+            padding: 28px 18px 50px;
+        }
+
+        /* ---------- HEADER ---------- */
+
+        .game-title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .game-subtitle {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #72552d;
+            margin-bottom: 5px;
+        }
+
+        .game-title h1 {
+            margin: 0;
+            font-size: clamp(48px, 8vw, 88px);
+            line-height: .95;
+            letter-spacing: 9px;
+            color: #3b2918;
+            text-shadow:
+                2px 2px 0 var(--gold-light),
+                4px 4px 0 rgba(70,45,20,.16);
+        }
+
+        .ornament {
+            margin-top: 12px;
+            color: var(--gold-dark);
+            font-size: 18px;
+            letter-spacing: 12px;
+        }
+
+        /* ---------- ERROR ---------- */
+
+        #erreur {
+            min-height: 25px;
+            margin: 0 0 10px;
+            text-align: center;
+            color: #8b2c25;
+            font-size: 30px;
+        }
+
+        /* ---------- MAIN PANEL ---------- */
+
+        .game-panel {
+            position: relative;
+            background:
+                linear-gradient(rgba(255,255,255,.13), rgba(255,255,255,.13)),
+                var(--parchment-light);
+            border: 3px solid var(--gold);
+            box-shadow:
+                0 10px 30px var(--shadow),
+                inset 0 0 0 1px #8b6a35;
+            padding: 25px;
+        }
+
+        .game-panel::before,
+        .game-panel::after {
+            position: absolute;
+            color: var(--gold);
+            font-size: 14px;
+        }
+
+        .game-panel::before {
+            content: "◆";
+            top: 7px;
+            left: 9px;
+        }
+
+        .game-panel::after {
+            content: "◆";
+            right: 9px;
+            bottom: 7px;
+        }
+
+        /* ---------- PLAYERS ---------- */
+
+        .players-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .section-label {
+            display: block;
+            color: #80632e;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .players-header h2 {
+            margin: 3px 0 0;
+            font-size: 30px;
+        }
+
+        .add-player {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border: 2px solid var(--gold-dark);
+            background: var(--brown);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 3px 0 #392415;
+            transition: .18s ease;
+        }
+
+        .add-player:hover {
+            background: var(--brown-light);
+            transform: translateY(-2px);
+        }
+
+        .add-player:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0 #392415;
+        }
+
+        .add-player .plus {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            width: 100%;
+            padding: 14px;
+            border: 2px solid;
+            cursor: pointer;
+            text-align: left;
+            color: var(--ink);
+            box-shadow: 0 4px 9px rgba(0,0,0,.14);
+            transition: .18s ease;
+        }
+
+        .player-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,.2);
+        }
+
+        .player-blue {
+            background: var(--blue-light);
+            border-color: #54778e;
+        }
+
+        .player-red {
+            background: var(--red-light);
+            border-color: #9b554b;
+        }
+
+        .player-number {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--gold);
+            color: white;
+            font-weight: bold;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,.2);
+        }
+
+        .player-name {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .player-arrow {
+            font-size: 25px;
+            opacity: .45;
+        }
+
+        /* ---------- PLAYER EDITOR ---------- */
+
+        #pseudo_player {
+            margin-top: 25px;
+        }
+
+        .player-editor {
+            border-top: 2px solid rgba(100,70,30,.25);
+            padding-top: 22px;
+        }
+
+        .player-editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .player-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .player-title-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            background: var(--gold);
+            color: white;
+            font-size: 21px;
+            border-radius: 50%;
+        }
+
+        .player-title small {
+            display: block;
+            color: #80632e;
+            font-size: 10px;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .player-title h2 {
+            margin: 2px 0 0;
+            font-size: 28px;
+        }
+
+        .pseudo-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 7px 4px;
+            background: transparent;
+            border: 0;
+            border-bottom: 2px solid var(--gold);
+            outline: none;
+            color: var(--ink);
+            font-weight: bold;
+            font-size: 21px;
+        }
+
+        .delete-button {
+            padding: 10px 15px;
+            border: 1px solid #66241f;
+            background: var(--red);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: .18s;
+        }
+
+        .delete-button:hover {
+            background: #a34036;
+            transform: translateY(-1px);
+        }
+
+        /* ---------- STATS ---------- */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 17px;
+            min-width: 0;
+            background: rgba(255,255,255,.32);
+            border: 2px solid;
+            box-shadow: 0 3px 8px rgba(0,0,0,.11);
+        }
+
+        .stat-icon {
+            flex: 0 0 46px;
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,.5);
+            font-size: 25px;
+        }
+
+        .stat-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stat-category {
+            display: block;
+            font-size: 9px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            opacity: .65;
+        }
+
+        .stat-card h3 {
+            margin: 2px 0 3px;
+            font-size: 20px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 12px;
+            opacity: .68;
+        }
+
+        .stat-card input,
+        .stat-card select {
+            min-width: 65px;
+            padding: 8px;
+            border: 1px solid #96733b;
+            outline: none;
+            background: var(--parchment-light);
+            color: var(--ink);
+            font-weight: bold;
+        }
+
+        .stat-card input:focus,
+        .stat-card select:focus {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 2px rgba(198,154,59,.2);
+        }
+
+        .gold-card {
+            border-color: #c69a3b;
+        }
+
+        .military-card {
+            border-color: #963f36;
+        }
+
+        .level-card {
+            border-color: #52758f;
+        }
+
+        .blue-card {
+            border-color: #47789c;
+        }
+
+        .yellow-card {
+            border-color: #c59a38;
+        }
+
+        .science-card {
+            border-color: #69518b;
+        }
+
+        .purple-card {
+            border-color: #795082;
+        }
+
+        .war-card {
+            display: block;
+        }
+
+        .war-card .war-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 15px;
+        }
+
+        .war-inputs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .war-inputs label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #70443e;
+        }
+
+        .war-inputs select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .science-card {
+            display: block;
+        }
+
+        .science-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 15px;
+        }
+
+        .science-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .science-inputs label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #5c4a72;
+        }
+
+        .science-inputs input {
+            width: 100%;
+        }
+
+        .result-button {
+            display: block;
+            margin: 25px auto 2px;
+            padding: 14px 38px;
+            border: 2px solid var(--gold-dark);
+            background: linear-gradient(#dfc36c, #aa812e);
+            color: #302314;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #654715;
+            transition: .15s;
+        }
+
+        .result-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #654715;
+        }
+
+        /* ---------- RANKING ---------- */
+
+        #classement {
+            margin-top: 28px;
+            padding: 25px;
+            background: var(--parchment-light);
+            border: 3px solid var(--gold);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .ranking-title {
+            margin: 0 0 20px;
+            text-align: center;
+            font-size: 31px;
+        }
+
+        .ranking-subtitle {
+            margin: -12px 0 20px;
+            text-align: center;
+            color: #7a6034;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .ranking-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,.32);
+            border: 1px solid rgba(100,70,30,.25);
+            box-shadow: 0 2px 5px rgba(0,0,0,.08);
+        }
+
+        .ranking-row.first {
+            border: 2px solid var(--gold);
+            background: #eee0b8;
+        }
+
+        .ranking-position {
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            background: var(--gold);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .ranking-row.first .ranking-position {
+            background: #b1842e;
+        }
+
+        .ranking-name {
+            flex: 1;
+            font-size: 19px;
+            font-weight: bold;
+        }
+
+        .ranking-score {
+            font-size: 21px;
+            font-weight: bold;
+            color: #76531d;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+
+        @media (max-width: 800px) {
+            #game-container {
+                padding: 18px 10px 35px;
+            }
+
+            .game-panel {
+                padding: 18px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .players-header,
+            .player-editor-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .pseudo-input {
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .game-title h1 {
+                font-size: 42px;
+                letter-spacing: 5px;
+            }
+
+            .game-subtitle {
+                letter-spacing: 2px;
+            }
+
+            .stat-card {
+                flex-wrap: wrap;
+            }
+
+            .war-inputs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .science-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .ranking-score {
+                font-size: 17px;
+            }
+        }
+    </style>
+
+    <div id="game-container">
+
+        <header class="game-title">
+            <div class="game-subtitle">LA CIVILISATION • LE COMMERCE • LA GUERRE</div>
+            <h1>7 WONDERS</h1>
+            <div class="ornament">◆ ◆ ◆</div>
+        </header>
+
+        <h3 id="erreur"></h3>
+
+        <main class="game-panel">
+
+            <section id="players_liste"></section>
+
+            <section id="pseudo_player"></section>
+
+            <section id="score"></section>
+
+        </main>
+
+        <section id="classement"></section>
+
+    </div>
+
+    <script>
+        const players = [
+            {
+                pseudo: "Player 1",
+                id: 1,
+                argent: 0,
+                guerre1: 0,
+                guerre2: 0,
+                guerre3: 0,
+                guerremalus: 0,
+                niveau: 0,
+                cartebleu: 0,
+                cartejaune: 0,
+                tablette: 0,
+                compas: 0,
+                roue: 0,
+                carteviolette: 0,
+                total: 0
+            },
+            {
+                pseudo: "Player 2",
+                id: 2,
+                argent: 0,
+                guerre1: 0,
+                guerre2: 0,
+                guerre3: 0,
+                guerremalus: 0,
+                niveau: 0,
+                cartebleu: 0,
+                cartejaune: 0,
+                tablette: 0,
+                compas: 0,
+                roue: 0,
+                carteviolette: 0,
+                total: 0
+            },
+            {
+                pseudo: "Player 3",
+                id: 3,
+                argent: 0,
+                guerre1: 0,
+                guerre2: 0,
+                guerre3: 0,
+                guerremalus: 0,
+                niveau: 0,
+                cartebleu: 0,
+                cartejaune: 0,
+                tablette: 0,
+                compas: 0,
+                roue: 0,
+                carteviolette: 0,
+                total: 0
+            }
+        ];
+
+        function deletePlayer(id) {
+            const index = players.findIndex(player => player.id === id);
+            const erreur = document.getElementById("erreur");
+
+            if (players.length <= 1) {
+                erreur.textContent = "Tu ne peux pas supprimer le dernier joueur.";
+                return;
+            }
+
+            if (index !== -1) {
+                players.splice(index, 1);
+            }
+
+            erreur.textContent = "";
+
+            showPlayer();
+
+            if (players.length > 0) {
+                changePlayer(players[0].id);
+            } else {
+                document.querySelector("#pseudo_player").innerHTML = "";
+                document.querySelector("#score").innerHTML = "";
+            }
+        }
+
+        function changeStat(stat, id, input) {
+            const erreur = document.getElementById("erreur");
+            const player = players.find(p => p.id === id);
+
+            if (!player) {
+                return;
+            }
+
+            if (stat === "pseudo") {
+                if (input.value.trim() !== "") {
+                    player.pseudo = input.value.trim();
+                    input.value = "";
+                    erreur.textContent = "";
+                    changePlayer(id);
+                } else {
+                    erreur.textContent = "Vous devez remplir ce champ pour changer de pseudo !";
+                    input.value = "";
+                    return;
+                }
+            } else {
+                player[stat] = Number(input.value);
+            }
+
+            showPlayer();
+            result();
+        }
+
+        function changePlayer(id) {
+            const erreur = document.getElementById("erreur");
+            const player = players.find(p => p.id === id);
+
+            if (!player) {
+                return;
+            }
+
+            erreur.textContent = "";
+
+            document.querySelector("#pseudo_player").innerHTML = `
+                <div class="player-editor">
+
+                    <div class="player-editor-header">
+
+                        <div class="player-title">
+                            <div class="player-title-icon">♜</div>
+
+                            <div>
+                                <small>CITÉ SÉLECTIONNÉE</small>
+                                <h2>${player.pseudo}</h2>
+                            </div>
+                        </div>
+
+                        <div>
+                            <input
+                                class="pseudo-input"
+                                onchange="changeStat('pseudo', ${id}, this)"
+                                id="pseudo_input"
+                                type="text"
+                                placeholder="${player.pseudo}"
+                            >
+
+                            <button
+                                class="delete-button"
+                                onclick="deletePlayer(${id})"
+                            >
+                                ✕ Supprimer
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+
+            document.querySelector("#score").innerHTML = `
+                <div class="stats-grid">
+
+                    <section class="stat-card gold-card">
+                        <div class="stat-icon">🪙</div>
+
+                        <div class="stat-content">
+                            <span class="stat-category">ÉCONOMIE</span>
+                            <h3>Argent</h3>
+                            <p>Nombre de pièces possédées</p>
+                        </div>
+
+                        <input
+                            onchange="changeStat('argent', ${id}, this)"
+                            min="0"
+                            type="number"
+                            value="${player.argent}"
+                        >
+                    </section>
+
+                    <section class="stat-card level-card">
+                        <div class="stat-icon">🏛</div>
+
+                        <div class="stat-content">
+                            <span class="stat-category">CIVILISATION</span>
+                            <h3>Niveau</h3>
+                            <p>Points des niveaux de la cité</p>
+                        </div>
+
+                        <input
+                            onchange="changeStat('niveau', ${id}, this)"
+                            min="0"
+                            type="number"
+                            value="${player.niveau}"
+                        >
+                    </section>
+
+                    <section class="stat-card military-card war-card">
+
+                        <div class="war-top">
+                            <div class="stat-icon">⚔</div>
+
+                            <div class="stat-content">
+                                <span class="stat-category">MILITAIRE</span>
+                                <h3>Guerres</h3>
+                                <p>Victoire et malus militaires</p>
+                            </div>
+                        </div>
+
+                        <div class="war-inputs">
+
+                            <label>
+                                ÂGE I
+                                <select
+                                    onchange="changeStat('guerre1', ${id}, this)"
+                                    id="guerre1"
+                                >
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                ÂGE II
+                                <select
+                                    onchange="changeStat('guerre2', ${id}, this)"
+                                    id="guerre2"
+                                >
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                ÂGE III
+                                <select
+                                    onchange="changeStat('guerre3', ${id}, this)"
+                                    id="guerre3"
+                                >
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                MALUS
+                                <select
+                                    onchange="changeStat('guerremalus', ${id}, this)"
+                                    id="guerremalus"
+                                >
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                </select>
+                            </label>
+
+                        </div>
+                    </section>
+
+                    <section class="stat-card blue-card">
+                        <div class="stat-icon">🔵</div>
+
+                        <div class="stat-content">
+                            <span class="stat-category">CIVIQUE</span>
+                            <h3>Carte Bleue</h3>
+                            <p>Points des bâtiments civiques</p>
+                        </div>
+
+                        <input
+                            onchange="changeStat('cartebleu', ${id}, this)"
+                            min="0"
+                            type="number"
+                            value="${player.cartebleu}"
+                        >
+                    </section>
+
+                    <section class="stat-card yellow-card">
+                        <div class="stat-icon">🟡</div>
+
+                        <div class="stat-content">
+                            <span class="stat-category">COMMERCE</span>
+                            <h3>Carte Jaune</h3>
+                            <p>Points des bâtiments commerciaux</p>
+                        </div>
+
+                        <input
+                            onchange="changeStat('cartejaune', ${id}, this)"
+                            min="0"
+                            type="number"
+                            value="${player.cartejaune}"
+                        >
+                    </section>
+
+                    <section class="stat-card purple-card">
+                        <div class="stat-icon">🟣</div>
+
+                        <div class="stat-content">
+                            <span class="stat-category">GUILDES</span>
+                            <h3>Carte Violette</h3>
+                            <p>Points obtenus grâce aux guildes</p>
+                        </div>
+
+                        <input
+                            onchange="changeStat('carteviolette', ${id}, this)"
+                            min="0"
+                            type="number"
+                            value="${player.carteviolette}"
+                        >
+                    </section>
+
+                    <section class="stat-card science-card">
+
+                        <div class="science-top">
+                            <div class="stat-icon">🔬</div>
+
+                            <div class="stat-content">
+                                <span class="stat-category">SCIENCE</span>
+                                <h3>Symboles scientifiques</h3>
+                                <p>Tablette, compas et roue</p>
+                            </div>
+                        </div>
+
+                        <div class="science-inputs">
+
+                            <label>
+                                TABLETTE
+                                <input
+                                    onchange="changeStat('tablette', ${id}, this)"
+                                    min="0"
+                                    type="number"
+                                    value="${player.tablette}"
+                                >
+                            </label>
+
+                            <label>
+                                COMPAS
+                                <input
+                                    onchange="changeStat('compas', ${id}, this)"
+                                    min="0"
+                                    type="number"
+                                    value="${player.compas}"
+                                >
+                            </label>
+
+                            <label>
+                                ROUE
+                                <input
+                                    onchange="changeStat('roue', ${id}, this)"
+                                    min="0"
+                                    type="number"
+                                    value="${player.roue}"
+                                >
+                            </label>
+
+                        </div>
+                    </section>
+
+                </div>
+
+                <button class="result-button" onclick="result()">
+                    ⚜ CALCULER LE SCORE ⚜
+                </button>
+            `;
+
+            document.getElementById("guerre1").value = player.guerre1;
+            document.getElementById("guerre2").value = player.guerre2;
+            document.getElementById("guerre3").value = player.guerre3;
+            document.getElementById("guerremalus").value = player.guerremalus;
+        }
+
+        function showPlayer() {
+            document.querySelector("#players_liste").innerHTML = `
+                <div class="players-header">
+
+                    <div>
+                        <span class="section-label">LES CITÉS</span>
+                        <h2>Joueurs</h2>
+                    </div>
+
+                    <button onclick="createPlayer()" class="add-player">
+                        <span class="plus">+</span>
+                        Ajouter une cité
+                    </button>
+
+                </div>
+
+                <div class="players-grid">
+                    ${players.map((player, index) => `
+                        <button
+                            onclick="changePlayer(${player.id})"
+                            class="player-card ${index % 2 === 0 ? "player-blue" : "player-red"}"
+                        >
+                            <span class="player-number">${player.id}</span>
+                            <span class="player-name">${player.pseudo}</span>
+                            <span class="player-arrow">›</span>
+                        </button>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        function createPlayer() {
+            const erreur = document.getElementById("erreur");
+
+            if (players.length >= 6) {
+                erreur.textContent = "Tu ne peux pas ajouter plus de 6 joueurs.";
+                return;
+            }
+
+            let nouvelID = 1;
+
+            while (players.some(player => player.id === nouvelID)) {
+                nouvelID++;
+            }
+
+            const nouveauPlayer = {
+                pseudo: "Player " + nouvelID,
+                id: nouvelID,
+                argent: 0,
+                guerre1: 0,
+                guerre2: 0,
+                guerre3: 0,
+                guerremalus: 0,
+                niveau: 0,
+                cartebleu: 0,
+                cartejaune: 0,
+                tablette: 0,
+                compas: 0,
+                roue: 0,
+                carteviolette: 0,
+                total: 0
+            };
+
+            players.push(nouveauPlayer);
+
+            erreur.textContent = "";
+            showPlayer();
+            changePlayer(nouveauPlayer.id);
+        }
+
+        function result() {
+            for (const player of players) {
+
+                const min = Math.min(
+                    Math.floor(player.tablette),
+                    Math.floor(player.roue),
+                    Math.floor(player.compas)
+                );
+
+                const totalScience =
+                    (min * 7)
+                    + (player.tablette ** 2)
+                    + (player.roue ** 2)
+                    + (player.compas ** 2);
+
+                const ptsArgent = Math.floor(player.argent / 3);
+
+                const totalGuerre =
+                    player.guerre1
+                    + (player.guerre2 * 3)
+                    + (player.guerre3 * 5)
+                    - player.guerremalus;
+
+                const ptsNiveau = player.niveau;
+                const ptsBleu = player.cartebleu;
+                const ptsJaune = player.cartejaune;
+                const ptsViolette = player.carteviolette;
+
+                const score =
+                    totalScience
+                    + ptsArgent
+                    + ptsBleu
+                    + ptsJaune
+                    + ptsNiveau
+                    + ptsViolette
+                    + totalGuerre;
+
+                player.total = score;
+            }
+
+            const classement = [...players]
+                .sort((a, b) => b.total - a.total);
+
+            document.getElementById("classement").innerHTML = `
+                <h2 class="ranking-title">🏆 Classement</h2>
+                <p class="ranking-subtitle">LES MERVEILLES LES PLUS PRESTIGIEUSES</p>
+
+                ${classement.map((player, index) => `
+                    <div class="ranking-row ${index === 0 ? "first" : ""}">
+
+                        <div class="ranking-position">
+                            ${index === 0 ? "★" : index + 1}
+                        </div>
+
+                        <div class="ranking-name">
+                            ${player.pseudo}
+                        </div>
+
+                        <div class="ranking-score">
+                            ${player.total} pts
+                        </div>
+
+                    </div>
+                `).join("")}
+            `;
+        }
+
+        showPlayer();
+        changePlayer(1);
+    </script>
+</body>
+</html>
